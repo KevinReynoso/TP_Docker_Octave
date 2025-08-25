@@ -1,0 +1,7 @@
+FROM gnuoctave/octave:7.3.0
+
+WORKDIR /app
+
+COPY script.m .
+
+CMD ["octave" , "script.m"]

@@ -36,6 +36,7 @@ chmod +x start.sh
 ## 🚀 Actividades
 Deben hacer el `DOCKER_SETUP.md` teniendo las siguientes consideraciones
 * ¿Qué pasa si corremos la `docker image` sin asignar ninguna flag a `docker run`? ¿Podemos usar la misma terminal para correr otros comandos?
+** La respuesta es no, ya que la ejecución de la instancia de la imagen se realiza en la misma terminal. Para evitar esto, se debe añadir el flag -d para que la ejecución se realice en segundo plano.
  * El proyecto usa el usa el port `5000`. Intentar hacer `docker run` con y sin el parametro correspondiente. ¿Qué ocurre en cada caso?
  * Ejecutar `docker stop <container>`. ¿Qué pasa si al hacer `docker run` no le asigno un nombre al contenedor? ¿Qué debo poner en `<container>`para poder hacer `docker stop <container>`?
  * Si corro el contenedor en segundo plano, no veo información de la dirección IP que necesito para usar mi proyecto. Documentar qué se debe poner en el navegador

@@ -6,6 +6,9 @@ COPY requirements.txt .
 COPY app.py .
 COPY start.sh .
 
+# Installing SDK
+RUN pip install splitio_client[cpphash]==10.4.0
+
 RUN apt-get update && apt-get install -y \
     redis-server \
     && rm -rf /var/lib/apt/lists/*

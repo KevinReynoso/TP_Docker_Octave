@@ -1,9 +1,28 @@
 from flask import Flask
+from splitio import get_factory
+from splitio.exceptions import TimeoutException
+
 import redis
 import time
 import os
 
+import sys
+import logging
+
 app = Flask(__name__)
+
+logging.basicConfig(level=logging.DEBUG)
+
+config = {'ready' : 5000}
+
+try:
+   factory = get_factory('8njq4vpuuor0al7nk0t9tek77cr4d05crqs1', config=config)
+   split = factory.client()
+except TimeoutException:
+   # The SDK failed to initialize in a second. Abort!
+   sys.exit()
+
+treatment = split.get_treatment('CUSTOMER_ID', 'test_split')
 
 def wait_for_redis():
     """Esperar a que Redis esté disponible"""
@@ -24,22 +43,33 @@ def wait_for_redis():
 
 @app.route('/')
 def contador_visitas():
-    try:
-        redis_client = wait_for_redis()
-        visitas = redis_client.incr('visitas')
-        return f'''
-        <html>
-            <body style="font-family: Arial; text-align: center; padding: 50px;">
-                <h1>📊 Contador de Visitas</h1>
-                <p style="font-size: 24px;">¡Número de visitas: <strong>{visitas}</strong>! 🎉</p>
-                <p>✅ Redis funcionando correctamente</p>
-                <a href="/reiniciar">🔄 Reiniciar contador</a> | 
-                <a href="/health">❤️ Health check</a>
-            </body>
-        </html>
-        '''
-    except Exception as e:
-        return f'❌ Error: {str(e)}'
+    if treatment == 'on':
+        # insert code here to show on treatment
+        try:
+            redis_client = wait_for_redis()
+            visitas = redis_client.incr('visitas')
+            return f'''
+            <html>
+                <body style="font-family: Arial; text-align: center; padding: 50px;">
+                    <h1>📊 Contador de Visitas</h1>
+                    <p style="font-size: 24px;">¡Número de visitas: <strong>{visitas}</strong>! 🎉</p>
+                    <p>✅ Redis funcionando correctamente</p>
+                    <a href="/reiniciar">🔄 Reiniciar contador</a> | 
+                    <a href="/health">❤️ Health check</a>
+                </body>
+            </html>
+            '''
+        except Exception as e:
+            return f'❌ Error: {str(e)}'
+    elif treatment == 'off':
+        # insert code here to show off treatment
+        pass
+    else:
+        # insert your control treatment code here
+        pass
+
+    split.destroy()
+    
 
 @app.route('/reiniciar')
 def reiniciar_contador():

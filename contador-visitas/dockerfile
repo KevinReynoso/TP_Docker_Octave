@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y \
     redis-server \
     && rm -rf /var/lib/apt/lists/*
 
+    
+# SDK
 RUN pip install splitio_client[cpphash]==10.4.0
 
 RUN pip install --no-cache-dir -r requirements.txt

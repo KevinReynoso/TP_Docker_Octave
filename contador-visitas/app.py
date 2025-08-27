@@ -12,6 +12,7 @@ import logging
 
 app = Flask(__name__)
 
+# se descargan y se obtienen las reglas y configuraciones de todos los feature flags definidos
 factory = get_factory('8njq4vpuuor0al7nk0t9tek77cr4d05crqs1')
 try:
     factory.block_until_ready(5)
@@ -19,6 +20,7 @@ except TimeoutException:
     # The SDK failed to initialize in 5 seconds. Abort!
     sys.exit()
 
+# crea y devuelve una instancia del cliente del SDK
 split = factory.client()
 
 
@@ -44,6 +46,8 @@ def contador_visitas():
     try:
         redis_client = wait_for_redis()
         visitas = redis_client.incr('visitas')
+
+        # realiza la consulta respecto al treatment en el feature flag especificado y al id del cliente
         treatment = split.get_treatment(visitas, # unique identifier for your user
                                 'test_split')
         if treatment == 'on':
@@ -60,8 +64,13 @@ def contador_visitas():
             </html>
            '''
         elif treatment == 'off':
-            # insert off code here
-            pass
+            return f'''
+            <html>
+               <body style="font-family: Arial; text-align: center; padding: 50px;">
+                  <h1>No tiene acceso. Lo sentimos.</h1>
+             </body>
+            </html>
+           '''
         else:
             # insert control code here
             pass

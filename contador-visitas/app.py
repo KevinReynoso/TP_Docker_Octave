@@ -1,4 +1,5 @@
 from flask import Flask
+
 from splitio import get_factory
 from splitio.exceptions import TimeoutException
 
@@ -11,18 +12,15 @@ import logging
 
 app = Flask(__name__)
 
-logging.basicConfig(level=logging.DEBUG)
-
-config = {'ready' : 5000}
-
+factory = get_factory('8njq4vpuuor0al7nk0t9tek77cr4d05crqs1')
 try:
-   factory = get_factory('8njq4vpuuor0al7nk0t9tek77cr4d05crqs1', config=config)
-   split = factory.client()
+    factory.block_until_ready(5)
 except TimeoutException:
-   # The SDK failed to initialize in a second. Abort!
-   sys.exit()
+    # The SDK failed to initialize in 5 seconds. Abort!
+    sys.exit()
 
-treatment = split.get_treatment('CUSTOMER_ID', 'test_split')
+split = factory.client()
+
 
 def wait_for_redis():
     """Esperar a que Redis esté disponible"""
@@ -43,33 +41,32 @@ def wait_for_redis():
 
 @app.route('/')
 def contador_visitas():
-    if treatment == 'on':
-        # insert code here to show on treatment
-        try:
-            redis_client = wait_for_redis()
-            visitas = redis_client.incr('visitas')
+    try:
+        redis_client = wait_for_redis()
+        visitas = redis_client.incr('visitas')
+        treatment = split.get_treatment(visitas, # unique identifier for your user
+                                'test_split')
+        if treatment == 'on':
+        # insert on code here
             return f'''
             <html>
-                <body style="font-family: Arial; text-align: center; padding: 50px;">
-                    <h1>📊 Contador de Visitas</h1>
-                    <p style="font-size: 24px;">¡Número de visitas: <strong>{visitas}</strong>! 🎉</p>
-                    <p>✅ Redis funcionando correctamente</p>
-                    <a href="/reiniciar">🔄 Reiniciar contador</a> | 
-                    <a href="/health">❤️ Health check</a>
-                </body>
+               <body style="font-family: Arial; text-align: center; padding: 50px;">
+                  <h1>📊 Contador de Visitas</h1>
+                  <p style="font-size: 24px;">¡Número de visitas: <strong>{visitas}</strong>! 🎉</p>
+                  <p>✅ Redis funcionando correctamente</p>
+                  <a href="/reiniciar">🔄 Reiniciar contador</a> | 
+                   <a href="/health">❤️ Health check</a>
+             </body>
             </html>
-            '''
-        except Exception as e:
-            return f'❌ Error: {str(e)}'
-    elif treatment == 'off':
-        # insert code here to show off treatment
-        pass
-    else:
-        # insert your control treatment code here
-        pass
-
-    split.destroy()
-    
+           '''
+        elif treatment == 'off':
+            # insert off code here
+            pass
+        else:
+            # insert control code here
+            pass
+    except Exception as e:
+        return f'❌ Error: {str(e)}'
 
 @app.route('/reiniciar')
 def reiniciar_contador():

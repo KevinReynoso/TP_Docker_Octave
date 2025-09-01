@@ -1,0 +1,21 @@
+services:
+  web:
+    build: .
+    image: "contador-visitas"
+    container_name: "visitas"
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+    networks:
+      - mi-red
+  redis:
+    image: "redis:alpine"
+    networks:
+      - mi-red
+
+networks:
+  mi-red:
+    driver: bridge
